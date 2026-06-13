@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مشاهده کاربران - پیوند مودت</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tahoma', sans-serif; }
+        body { background: linear-gradient(135deg, #fef3e2 0%, #ffe8d4 100%); padding: 20px; min-height: 100vh; }
+        .container { max-width: 950px; margin: auto; background: white; border-radius: 40px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #b45f2b; margin-bottom: 8px; font-size: 28px; }
+        .sub { text-align: center; color: #8b694a; margin-bottom: 30px; font-size: 14px; border-bottom: 2px dashed #ffcd94; padding-bottom: 12px; }
+        .user-list { background: #faf3ea; border-radius: 28px; padding: 20px; max-height: 550px; overflow-y: auto; margin-top: 25px; }
+        .user-card { border-bottom: 1px solid #e2c7a3; padding: 14px; margin-bottom: 12px; background: white; border-radius: 20px; }
+        button { background: #c17b42; color: white; border: none; padding: 12px 28px; border-radius: 40px; cursor: pointer; font-size: 15px; font-weight: bold; margin: 5px; transition: 0.2s; }
+        button:hover { background: #a55d2a; transform: translateY(-2px); }
+        .btn-home { background: #6c757d; }
+        .btn-home:hover { background: #5a6268; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>👥 مشاهده کاربران</h1>
+    <div class="sub">لیست افرادی که در «پیوند مودت» ثبت‌نام کرده‌اند</div>
+
+    <div id="usersList" class="user-list">
+        <div style="text-align:center; padding:30px;">⏳ در حال بارگذاری اطلاعات...</div>
+    </div>
+
+    <div style="text-align: center; margin-top: 25px;">
+        <button onclick="location.href='index.html'" class="btn-home">🏠 بازگشت به صفحه ثبت‌نام</button>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyvGkE8K2ZTW6inXX7U4skkMAiPv7B9_4KE1cszLl_RgrdHfyUrSHK_ncuqlCnhOapD/exec";
+    
+    let usersDatabase = [];
+    
+    async function loadFromSheet() {
+        try {
+            const res = await fetch(SCRIPT_URL);
+            const data = await res.json();
+            usersDatabase = Array.isArray(data) ? data : [];
+            renderPublicList();
+        } catch(e) {
+            document.getElementById('usersList').innerHTML = '<div style="text-align:center; padding:30px;">❌ خطا در ارتباط با سرور</div>';
+        }
+    }
+    
+    function generateAlias(idx) { return `مودت_${idx+1}_${Math.floor(10000+Math.random()*90000)}`; }
+    
+    function renderPublicList() {
+        const container = document.getElementById('usersList');
+        if(usersDatabase.length === 0) { 
+            container.innerHTML = '<div style="text-align:center; padding:30px;">📭 هنوز کاربری ثبت نام نکرده</div>'; 
+            return; 
+        }
+        let html = '';
+        usersDatabase.forEach((user, idx) => {
+            const alias = generateAlias(idx);
+            html += `
+                <div class="user-card">
+                    <strong>🆔 ${alias}</strong><br>
+                    جنسیت: ${user.gender || '-'}<br>
+                    تاریخ تولد: ${user.birthYear || '-'}/${user.birthMonth || '-'}/${user.birthDay || '-'}<br>
+                    قد: ${user.height || '-'} سانتی‌متر | وزن: ${user.weight || '-'} کیلوگرم<br>
+                    شغل پدر: ${user.fatherJob || '-'} | شغل مادر: ${user.motherJob || '-'}<br>
+                    رنگ پوست: ${user.skinColor || '-'} | رنگ چشم: ${user.eyeColor || '-'}<br>
+                    نوع پوشش: ${user.dressCode || '-'}<br>
+                    شغل: ${user.jobType || '-'}<br>
+                    شرح شغل: ${(user.jobDesc || '-').substring(0,100)}<br>
+                    وضعیت جسمی: ${user.physicalStatus || '-'}<br>
+                    دخانیات: ${user.smoking || '-'}<br>
+                    تعداد خانواده: ${user.familyCount || '-'} نفر | فرزند چندم: ${user.childOrder || '-'}<br>
+                    استان: ${user.province || '-'} | شهرستان: ${user.city || '-'} | محله: ${user.neighborhood || '-'}<br>
+                    خصوصیات اخلاقی: ${(user.personality || '-').substring(0,100)}<br>
+                    معیار همسر: ${(user.spouseCriteria || '-').substring(0,150)}<br>
+                    سابقه ازدواج: ${user.marriageHistory || '-'}<br>
+                    استان‌های قابل قبول: ${user.acceptProvinces || '-'}<br>
+                    شغل ایده‌آل همسر: ${user.spouseJobAccept || '-'}<br>
+                    اختلاف سنی مطلوب: ${user.ageDiff || '-'}<br>
+                    حداقل تحصیلات همسر: ${user.minEduSpouse || '-'}<br>
+                    تحصیلات خود: ${user.selfEducation || '-'}<br>
+                    درآمد: ${user.income || '-'} تومان<br>
+                    وضعیت دارایی: ${user.assets || '-'}<br>
+                    توضیحات: ${(user.moreInfo || '-').substring(0,100)}<br>
+                    نحوه ارتباط: ${user.contactMethod || '-'}
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+    
+    loadFromSheet();
+</script>
+</body>
+</html>

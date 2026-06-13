@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل ادمین - پیوند مودت</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tahoma', sans-serif; }
+        body { background: linear-gradient(135deg, #fef3e2 0%, #ffe8d4 100%); padding: 20px; min-height: 100vh; }
+        .container { max-width: 950px; margin: auto; background: white; border-radius: 40px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #b45f2b; margin-bottom: 8px; font-size: 28px; }
+        .sub { text-align: center; color: #8b694a; margin-bottom: 30px; font-size: 14px; border-bottom: 2px dashed #ffcd94; padding-bottom: 12px; }
+        .admin-panel-content { background: #faf3ea; border-radius: 28px; padding: 20px; max-height: 550px; overflow-y: auto; margin-top: 25px; }
+        .admin-card { border: 2px solid #c17b42; margin-bottom: 18px; padding: 18px; border-radius: 24px; background: #fffef7; }
+        button { background: #c17b42; color: white; border: none; padding: 12px 28px; border-radius: 40px; cursor: pointer; font-size: 15px; font-weight: bold; margin: 5px; transition: 0.2s; }
+        button:hover { background: #a55d2a; transform: translateY(-2px); }
+        .status { padding: 14px; border-radius: 30px; margin: 20px 0; text-align: center; font-weight: bold; }
+        .success { background: #d9f0da; color: #2a6817; }
+        .error { background: #ffe0dc; color: #b33; }
+        .admin-pass-area { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; background: #fef2e6; padding: 15px; border-radius: 30px; }
+        .admin-pass-area input { flex: 1; padding: 12px; border-radius: 30px; border: 1px solid #e2c7a3; font-size: 14px; }
+        .btn-home { background: #6c757d; }
+        .btn-home:hover { background: #5a6268; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🔐 پنل مدیریت</h1>
+    <div class="sub">ورود به بخش ادمین - اطلاعات کامل کاربران</div>
+
+    <div id="messageArea"></div>
+    
+    <div class="admin-pass-area">
+        <input type="password" id="adminPasswordInput" placeholder="رمز ادمین را وارد کنید">
+        <button id="verifyAdminBtn">ورود به پنل</button>
+    </div>
+    
+    <div id="adminDataArea" class="admin-panel-content" style="display:none;"></div>
+
+    <div style="text-align: center; margin-top: 25px;">
+        <button onclick="location.href='index.html'" class="btn-home">🏠 بازگشت به صفحه ثبت‌نام</button>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyvGkE8K2ZTW6inXX7U4skkMAiPv7B9_4KE1cszLl_RgrdHfyUrSHK_ncuqlCnhOapD/exec";
+    const ADMIN_PASSWORD = "admin123";
+    
+    let usersDatabase = [];
+    
+    async function loadFromSheet() {
+        try {
+            const res = await fetch(SCRIPT_URL);
+            const data = await res.json();
+            usersDatabase = Array.isArray(data) ? data : [];
+            return usersDatabase;
+        } catch(e) {
+            return [];
+        }
+    }
+    
+    function showMessage(msg, isError = false) {
+        const msgDiv = document.getElementById('messageArea');
+        msgDiv.innerHTML = `<div class="status ${isError ? 'error' : 'success'}">${msg}</div>`;
+        setTimeout(() => msgDiv.innerHTML = '', 4500);
+    }
+    
+    function renderAdminFullData() {
+        const container = document.getElementById('adminDataArea');
+        if(usersDatabase.length === 0) { 
+            container.innerHTML = '<div style="padding:20px; text-align:center;">هیچ کاربری ثبت نشده</div>'; 
+            container.style.display = 'block';
+            return; 
+        }
+        let html = '';
+        usersDatabase.forEach((user, idx) => {
+            html += `
+                <div class="admin-card">
+                    <strong>👤 ${user.fullname || 'نامشخص'}</strong><br>
+                    📞 شماره تماس ۱: ${user.phone1 || '-'} | شماره تماس ۲: ${user.phone2 || '-'}<br>
+                    🚻 جنسیت: ${user.gender || '-'} | 📅 تولد: ${user.birthYear}/${user.birthMonth}/${user.birthDay}<br>
+                    قد/وزن: ${user.height}/${user.weight}<br>
+                    شغل پدر/مادر: ${user.fatherJob} / ${user.motherJob}<br>
+                    رنگ پوست/چشم: ${user.skinColor} / ${user.eyeColor}<br>
+                    پوشش: ${user.dressCode} | شغل: ${user.jobType}<br>
+                    شرح شغل: ${user.jobDesc}<br>
+                    وضعیت جسمی: ${user.physicalStatus} | دخانیات: ${user.smoking}<br>
+                    تعداد خانواده: ${user.familyCount} | فرزند چندم: ${user.childOrder}<br>
+                    استان: ${user.province} | شهرستان: ${user.city} | محله: ${user.neighborhood}<br>
+                    خصوصیات اخلاقی: ${user.personality}<br>
+                    معیار همسر: ${user.spouseCriteria}<br>
+                    سابقه ازدواج: ${user.marriageHistory}<br>
+                    استان‌های قابل قبول: ${user.acceptProvinces}<br>
+                    شغل ایده‌آل همسر: ${user.spouseJobAccept}<br>
+                    اختلاف سنی: ${user.ageDiff}<br>
+                    تحصیلات همسر: ${user.minEduSpouse}<br>
+                    تحصیلات خود: ${user.selfEducation}<br>
+                    درآمد: ${user.income}<br>
+                    دارایی: ${user.assets}<br>
+                    توضیحات: ${user.moreInfo}<br>
+                    📱 آیدی ایتا: ${user.eitaaId || '-'}<br>
+                    📱 آیدی روبیکا: ${user.rubikaId || '-'}<br>
+                    📱 آیدی بله: ${user.baleId || '-'}<br>
+                    📱 آیدی سروش: ${user.soroushId || '-'}<br>
+                    نحوه ارتباط: ${user.contactMethod}<br>
+                    <small>🕐 زمان ثبت: ${user.timestamp || ''}</small>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        container.style.display = 'block';
+    }
+    
+    document.getElementById('verifyAdminBtn').onclick = async () => {
+        const pass = document.getElementById('adminPasswordInput').value;
+        if(pass !== ADMIN_PASSWORD) { 
+            showMessage("❌ رمز ادمین اشتباه است!", true); 
+            return; 
+        }
+        await loadFromSheet();
+        renderAdminFullData();
+        showMessage("✅ ورود موفق - اطلاعات کامل کاربران نمایش داده شد");
+    };
+</script>
+</body>
+</html>
